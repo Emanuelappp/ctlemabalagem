@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Estoque de Embalagens - Packing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4CAF50">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --white: #ffffff;
+      --primary: #4CAF50;
+      --text: #333;
+      --border: #ddd;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    .cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .cabecalho img {
+      height: 50px;
+    }
+
+    .cabecalho h1 {
+      color: var(--primary);
+      font-size: 1.8rem;
+      margin: 0;
+      text-align: center;
+    }
+
+    form {
+      background-color: var(--white);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    input, select, button {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: var(--white);
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    @media (max-width: 600px) {
+      form {
+        font-size: 0.95rem;
+      }
+      .cabecalho {
+        flex-direction: column;
+      }
+      .cabecalho img {
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cabecalho">
+    <img src="https://goldfruit.com.br/wp-content/uploads/2021/01/GoldFruit__1_-removebg-preview.png" alt="Logo">
+    <h1>Estoque de Embalagens - Packing</h1>
+  </div>
+
+  <form id="estoque-form">
+    <div class="form-group">
+      <label for="tipo">Tipo de movimentação:</label>
+      <select id="tipo" required>
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="item">Item:</label>
+      <input type="text" id="item" placeholder="Ex: Caixa P" required>
+    </div>
+
+    <div class="form-group">
+      <label for="quantidade">Quantidade:</label>
+      <input type="number" id="quantidade" min="1" required>
+    </div>
+
+    <div class="form-group">
+      <label for="notaFiscal">Nota Fiscal:</label>
+      <input type="text" id="notaFiscal" placeholder="Número da nota fiscal (opcional)">
+    </div>
+
+    <div class="form-group">
+      <label for="responsavel">Responsável:</label>
+      <input type="text" id="responsavel" placeholder="Nome da pessoa" required>
+    </div>
+
+    <div class="form-group">
+      <label for="data">Data:</label>
+      <input type="text" id="data" readonly>
+    </div>
+
+    <button type="submit">Registrar</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('estoque-form');
+    const dataInput = document.getElementById('data');
+
+    function atualizarData() {
+      const hoje = new Date();
+      const dataFormatada = hoje.toLocaleDateString('pt-BR');
+      dataInput.value = dataFormatada;
+    }
+    atualizarData();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const tipo = document.getElementById('tipo').value;
+      const item = document.getElementById('item').value.trim();
+      const quantidade = parseInt(document.getElementById('quantidade').value);
+      const notaFiscal = document.getElementById('notaFiscal').value.trim();
+      const responsavel = document.getElementById('responsavel').value.trim();
+      const data = dataInput.value;
+
+      if (!item || quantidade <= 0 || !responsavel) return;
+
+      try {
+        const response = await fetch("https://api.sheetmonkey.io/form/9Uw9rdDSN8Se4xDun5tXYj", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Tipo: tipo,
+            Item: item,
+            Quantidade: quantidade,
+            NotaFiscal: notaFiscal,
+            Responsavel: responsavel,
+            Data: data
+          })
+        });
+
+        if (!response.ok) {
+          alert("❌ Erro ao enviar para o Sheet Monkey. Verifique a URL ou sua conexão.");
+          console.error("Erro:", response.status, response.statusText);
+        } else {
+          alert("✅ Registro enviado com sucesso!");
+        }
+
+      } catch (err) {
+        alert("❌ Erro de conexão. Verifique sua internet.");
+        console.error("Erro:", err);
+      }
+
+      form.reset();
+      atualizarData();
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker registrado com sucesso!'))
+        .catch(err => console.error('❌ Erro ao registrar o Service Worker:', err));
+    }
+  </script>
+</body>
+</html>
